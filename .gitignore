@@ -1,0 +1,17 @@
+# 忽略临时文件和备份
+*.tmp
+*.bak
+*.swp
+*~
+
+# 忽略操作系统文件
+.DS_Store
+Thumbs.db
+
+# 忽略IDE配置（可选）
+.vscode/
+.idea/
+
+# 保留README和文档
+!README.md
+!代码逻辑分析.md
