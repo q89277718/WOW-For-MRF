@@ -1,0 +1,480 @@
+import { Divider, Grid, H1, H2, Stack, Text } from 'qoder/canvas';
+import React from 'react';
+
+export default function DruidBalanceRailgunFlowchart() {
+  const c = {
+    purple: '#7c3aed', purpleL: '#ede9fe',
+    green: '#059669', greenL: '#ecfdf5',
+    orange: '#d97706', orangeL: '#fffbeb',
+    red: '#dc2626', redL: '#fef2f2',
+    blue: '#2563eb', blueL: '#eff6ff',
+    gray: '#6b7280', grayL: '#f9fafb',
+    border: '#e5e7eb',
+    text: '#111827',
+    sub: '#4b5563',
+  };
+
+  // ── 小组件 ──
+  const FTag = ({ t, bg }: { t: string; bg: string }) => (
+    <span style={{ display: 'inline-block', padding: '1px 8px', background: bg, color: '#fff', borderRadius: '8px', fontSize: '10px', fontWeight: 700 }}>{t}</span>
+  );
+
+  const PhaseHead = ({ p, title, color }: { p: string; title: string; color: string }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+      <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', borderRadius: '8px', background: color, color: '#fff', fontWeight: 800, fontSize: '12px' }}>{p}</span>
+      <span style={{ fontWeight: 700, fontSize: '14px', color: c.text }}>{title}</span>
+    </div>
+  );
+
+  const FCard = ({ children, bg = '#fff', bc = c.border, p = '10px 12px' }: { children: React.ReactNode; bg?: string; bc?: string; p?: string }) => (
+    <div style={{ background: bg, border: `1.5px solid ${bc}`, borderRadius: '8px', padding: p }}>{children}</div>
+  );
+
+  const Arrow = ({ label, color = c.purple }: { label?: string; color?: string }) => (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1px', padding: '1px 0' }}>
+      <div style={{ width: '2px', height: '14px', background: color, borderRadius: '1px', position: 'relative' as const }}>
+        <div style={{ position: 'absolute', bottom: '-4px', left: '50%', transform: 'translateX(-50%)', width: 0, height: 0, borderLeft: '4px solid transparent', borderRight: '4px solid transparent', borderTop: `5px solid ${color}` }} />
+      </div>
+      {label && <span style={{ fontSize: '9px', fontWeight: 700, color, marginTop: '3px' }}>{label}</span>}
+    </div>
+  );
+
+  const Act = ({ title, desc, color = c.blue, bg = c.blueL }: { title: string; desc?: string; color?: string; bg?: string }) => (
+    <FCard bg={bg} bc={color}>
+      <div>
+        <div style={{ fontWeight: 700, fontSize: '12px', color }}>{title}</div>
+        {desc && <div style={{ fontSize: '10px', color: c.sub, marginTop: '1px' }}>{desc}</div>}
+      </div>
+    </FCard>
+  );
+
+  const Cond = ({ text, children }: { text: string; children?: React.ReactNode }) => (
+    <FCard bg={c.orangeL} bc="#fcd34d">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <span style={{ fontWeight: 600, fontSize: '12px', color: c.orange, wordBreak: 'break-word' }}>{text}</span>
+      </div>
+      {children}
+    </FCard>
+  );
+
+  const Branch = ({ yes, no, yesL = '是', noL = '否', yesFlex = 1, noFlex = 1 }: { yes: React.ReactNode; no: React.ReactNode; yesL?: string; noL?: string; yesFlex?: number; noFlex?: number }) => (
+    <div style={{ display: 'flex', gap: '10px', marginTop: '4px' }}>
+      <div style={{ flex: yesFlex, minWidth: 0 }}>
+        <div style={{ textAlign: 'center' as const, marginBottom: '3px' }}><FTag t={yesL} bg={c.green} /></div>
+        {yes}
+      </div>
+      <div style={{ flex: noFlex, minWidth: 0 }}>
+        <div style={{ textAlign: 'center' as const, marginBottom: '3px' }}><FTag t={noL} bg={c.gray} /></div>
+        {no}
+      </div>
+    </div>
+  );
+
+  const Note = ({ text, color = c.gray, bg = c.grayL }: { text: string; color?: string; bg?: string }) => (
+    <FCard bg={bg} bc={color} p="6px 10px">
+      <span style={{ fontSize: '11px', fontWeight: 600, color }}>{text}</span>
+    </FCard>
+  );
+
+  return (
+    <div style={{ padding: '28px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', background: '#f3f4f6', minHeight: '100vh' }}>
+      <div style={{ maxWidth: '100%', margin: '0 auto' }}>
+
+        {/* 标题 */}
+        <div style={{ textAlign: 'center' as const, marginBottom: '24px' }}>
+          <H1 style={{ fontSize: '24px', fontWeight: 800, margin: '0 0 4px 0', background: `linear-gradient(135deg, ${c.purple}, ${c.blue})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+            轨道炮鸟德 V2 — 输出逻辑流程图
+          </H1>
+          <Text size="small" style={{ color: c.gray }}>泰坦时光服 WLK 80 | 作者：墨染风</Text>
+        </div>
+
+        {/* ═══════ P0 前置 ═══════ */}
+        <FCard p="16px">
+          <PhaseHead p="P0" title="前置阶段" color={c.purple} />
+          <Stack gap={4} style={{ alignItems: 'stretch' }}>
+            <Cond text="非法目标？（无目标 / 不可攻击 / 已死亡）">
+              <Arrow label="是" color={c.red} />
+              <Act icon="🎯" title="停止施法 — 切换目标" color={c.red} bg={c.redL} />
+            </Cond>
+            <Arrow label="有效目标" />
+            <Cond text="枭兽形态增益 ≤ 0？">
+              <Arrow label="是" color={c.red} />
+              <Act icon="🦉" title="施放 枭兽形态" color={c.purple} bg={c.purpleL} />
+            </Cond>
+            <Arrow label="已变形" />
+            <Cond text="非战斗中 且 预拉配置开启？">
+              <Branch
+                yes={<Act icon="✨" title="施放 星火术（预读）" color={c.green} bg={c.greenL} />}
+                no={<Note text="跳过预读，继续" />}
+              />
+            </Cond>
+            <Arrow />
+            <Cond text="Boss战 且 战斗中 且 自然之力配置 且 CD 就绪？">
+              <Branch
+                yes={<Act icon="🌳" title="施放 自然之力" desc="Boss 战立即召唤，吃满嗜血" color={c.green} bg={c.greenL} />}
+                no={<Note text="跳过，继续" />}
+              />
+            </Cond>
+            <Arrow />
+            <Cond text="月蚀 ≤ 0 且 选民 ≤ 0（冲层宽裕期）？">
+              <Branch
+                yes={
+                  <Stack gap={3}>
+                    <Cond text="Boss战 或 目标存活 > 20s 且 精灵之火缺失？">
+                      <Branch
+                        yes={<Act icon="🔥" title="施放 精灵之火" color={c.orange} bg={c.orangeL} />}
+                        no={<Note text="跳过精灵之火" />}
+                      />
+                    </Cond>
+                    <Arrow />
+                    <Cond text="激活配置 且 CD 好 且 蓝 < 50%？">
+                      <Branch
+                        yes={<Act icon="💧" title="施放 激活" color={c.blue} bg={c.blueL} />}
+                        no={<Note text="跳过激活" />}
+                      />
+                    </Cond>
+                  </Stack>
+                }
+                no={<Note text="月蚀/选民进行中，跳过精灵之火和激活" />}
+              />
+            </Cond>
+          </Stack>
+        </FCard>
+
+        <Arrow label="进入全局循环" color={c.green} />
+
+        {/* ═══════ 全局 持续伤害 ═══════ */}
+        <FCard p="16px">
+          <PhaseHead p="持续伤害" title="全局 持续伤害 维护（每轮优先检查）" color={c.red} />
+          <Cond text="目标剩余 < 5 秒？">
+            <Branch
+              yes={<Note text="跳过所有 持续伤害 刷新" color={c.red} bg={c.redL} />}
+              no={
+                <Stack gap={3}>
+                  <Cond text="虫群(虫群剩余) ≤ 0？">
+                    <Arrow label="是" color={c.green} />
+                    <Act icon="🐛" title="施放 虫群" color={c.red} bg={c.redL} />
+                  </Cond>
+                  <Arrow label="虫群在" />
+                  <Cond text="月火(月火剩余) ≤ 0？">
+                    <Arrow label="是" color={c.green} />
+                    <Act icon="🌙" title="施放 月火术" color={c.red} bg={c.redL} />
+                  </Cond>
+                  <Arrow label="月火在" />
+                  <Cond text="苍穹之焰 ≤ 0 且 星辰之怒 ≤ 0（非选民期）且 有有效焦点？">
+                    <Branch
+                      yes={
+                        <Stack gap={3}>
+                          <Cond text="焦点虫群缺失？">
+                            <Arrow label="是" color={c.green} />
+                            <Act icon="🎯" title="施放 焦点虫群" color={c.gray} bg={c.grayL} />
+                          </Cond>
+                          <Arrow />
+                          <Cond text="焦点月火缺失？">
+                            <Arrow label="是" color={c.green} />
+                            <Act icon="🎯" title="施放 焦点月火" color={c.gray} bg={c.grayL} />
+                          </Cond>
+                        </Stack>
+                      }
+                      no={<Note text="选民期不补焦点 持续伤害 / 无焦点" />}
+                    />
+                  </Cond>
+                </Stack>
+              }
+            />
+          </Cond>
+        </FCard>
+
+        <Arrow label="持续伤害 已维护" color={c.green} />
+
+        {/* ═══════ P4 月神选民 ═══════ */}
+        <FCard p="16px">
+          <PhaseHead p="P4" title="月神选民期" color={c.orange} />
+          <Note text="触发条件：选民剩余 > 0 且 当前未在读条轨道炮" color={c.orange} bg={c.orangeL} />
+          <Arrow />
+          <Cond text="星落配置开启 且 冷却就绪？">
+            <Branch
+              yes={<Act icon="🌠" title="施放 星辰坠落" color={c.orange} bg={c.orangeL} />}
+              no={<Note text="跳过星落" />}
+            />
+          </Cond>
+          <Arrow />
+          <Cond text="有嗜血 / 英勇？">
+            <Branch
+              yesLabel="有嗜血"
+              noLabel="无嗜血"
+              yes={
+                <Stack gap={3}>
+                  <Note text="策略：星火消耗苍穹之焰，末尾切愤怒" color={c.green} bg={c.greenL} />
+                  <Cond text="选民剩余 ≤ 7s 且 星辰之怒层数 > 0？">
+                    <Branch yesFlex={1} noFlex={2}
+                      yes={<Act icon="" title="施放 愤怒" desc="快速消耗星辰之怒" color={c.orange} bg={c.orangeL} />}
+                      no={
+                        <Stack gap={3}>
+                          <Cond text="苍穹之焰层数 > 0？">
+                            <Branch yesFlex={1} noFlex={2}
+                              yes={<Act icon="✨" title="施放 星火术" desc="吃满 30% 急速" color={c.green} bg={c.greenL} />}
+                              no={
+                                <Cond text="星辰之怒层数 > 0？">
+                                  <Branch yesFlex={1} noFlex={2}
+                                    yes={<Act icon="😡" title="施放 愤怒" color={c.blue} bg={c.blueL} />}
+                                    no={
+                                      <Cond text="自然之赐 或 愤怒读条 < 0.75s？">
+                                        <Branch
+                                          yes={<Act icon="✨" title="施放 星火术" color={c.green} bg={c.greenL} />}
+                                          no={<Act icon="😡" title="施放 愤怒" color={c.blue} bg={c.blueL} />}
+                                        />
+                                      </Cond>
+                                    }
+                                  />
+                                </Cond>
+                              }
+                            />
+                          </Cond>
+                        </Stack>
+                      }
+                    />
+                  </Cond>
+                </Stack>
+              }
+              no={
+                <Stack gap={3}>
+                  <Note text="策略：愤怒消耗星辰之怒优先" color={c.blue} bg={c.blueL} />
+                  <Cond text="星辰之怒层数 > 0？">
+                    <Branch yesFlex={1} noFlex={2}
+                      yes={<Act icon="😡" title="施放 愤怒" color={c.blue} bg={c.blueL} />}
+                      no={
+                        <Cond text="苍穹之焰层数 > 0？">
+                          <Branch
+                            yes={
+                              <Cond text="自然之赐 或 愤怒读条 < 0.75s？">
+                                <Branch
+                                  yes={<Act icon="✨" title="施放 星火术" color={c.green} bg={c.greenL} />}
+                                  no={<Act icon="😡" title="施放 愤怒" color={c.blue} bg={c.blueL} />}
+                                />
+                              </Cond>
+                            }
+                            no={
+                              <Cond text="自然之赐 或 愤怒读条 < 0.75s？">
+                                <Branch
+                                  yes={<Act icon="✨" title="施放 星火术" color={c.green} bg={c.greenL} />}
+                                  no={<Act icon="😡" title="施放 愤怒" color={c.blue} bg={c.blueL} />}
+                                />
+                              </Cond>
+                            }
+                          />
+                        </Cond>
+                      }
+                    />
+                  </Cond>
+                </Stack>
+              }
+            />
+          </Cond>
+        </FCard>
+
+        <Arrow label="选民期结束" color={c.green} />
+
+        {/* ═══════ P3 月蚀 + 炮就绪 ═══════ */}
+        <FCard p="16px">
+          <PhaseHead p="P3" title="月蚀期 + 轨道炮就绪" color={c.green} />
+          <Note text="触发条件：月蚀剩余 > 炮读条+炮CD 且 炮CD ≤ 施法队列窗口 且 击杀时间条件满足" color={c.green} bg={c.greenL} />
+          <Arrow />
+          <Cond text="Boss 剩余 > 0 且 < 10 秒？">
+            <Branch
+              yes={<Act icon="🚫" title="停止施法 — 不开炮" desc="填充技能打满剩余月蚀" color={c.red} bg={c.redL} />}
+              no={
+                <Stack gap={3}>
+                  <Cond text="目标存活 > 120s（能放 ≥ 2 次炮）？">
+                    <Branch
+                      yes={<Act icon="🔫" title="立即进入开炮流程 ✅" desc="多次释放，保持正常节奏" color={c.green} bg={c.greenL} />}
+                      no={
+                        <Cond text="开炮后月蚀剩余 > 2s 且 目标存活 > 25s（会疲软）？">
+                          <Branch
+                            yes={<Act icon="⏸️" title="停止施法 — 延迟开炮" desc="等到月蚀剩 ~2s 再释放" color={c.orange} bg={c.orangeL} />}
+                            no={<Act icon="🔫" title="立即进入开炮流程 ✅" desc="不会疲软" color={c.green} bg={c.greenL} />}
+                          />
+                        </Cond>
+                      }
+                    />
+                  </Cond>
+                </Stack>
+              }
+            />
+          </Cond>
+          <Arrow label="确定开炮" />
+          <Cond text="太阳能量 < 3？">
+            <Branch yes={<Act icon="🌙" title="施放 月火术 — 补能量" color={c.purple} bg={c.purpleL} />} no={<Note text="太阳满" />} />
+          </Cond>
+          <Arrow />
+          <Cond text="月亮能量 < 3？">
+            <Branch yes={<Act icon="🐛" title="施放 虫群 — 补能量" color={c.purple} bg={c.purpleL} />} no={<Note text="月亮满" />} />
+          </Cond>
+          <Arrow />
+          <Cond text="战斗中？">
+            <Branch
+              yes={
+                <Cond text="Boss 战？">
+                  <Branch
+                    yes={<Act icon="🔫" title="施放 轨道炮（全爆发宏）" desc="/cqs + 饰品 + 手套 + 轨道炮" color={c.green} bg={c.greenL} />}
+                    no={<Act icon="🔫" title="施放 轨道炮（手套版）" desc="/cqs + 手套 + 轨道炮" color={c.blue} bg={c.blueL} />}
+                  />
+                </Cond>
+              }
+              no={<Act icon="⏳" title="停止施法 — 等待" desc="脱战或正在读炮" color={c.gray} bg={c.grayL} />}
+            />
+          </Cond>
+        </FCard>
+
+        <Arrow label="炮已释放 / 炮 CD 中" color={c.green} />
+
+        {/* ═══════ P5 月蚀 + 炮 CD ═══════ */}
+        <FCard p="16px">
+          <PhaseHead p="P5" title="月蚀期 + 炮 CD 中（填充 & 节奏调控）" color={c.blue} />
+          <Note text="触发条件：月蚀剩余 > 0 且（炮CD > 队列窗口 或 击杀时间在微妙区间）" color={c.blue} bg={c.blueL} />
+          <Arrow />
+          <Stack gap={3}>
+            <Grid columns={2} gap={6}>
+              <Cond text="太阳能量即将过期（太阳能量剩余 ≤ 星火读条+0.5）？">
+                <Arrow label="是" color={c.green} />
+                <Act icon="☀️" title="施放 星火术" color={c.blue} bg={c.blueL} />
+              </Cond>
+              <Cond text="月亮能量即将过期（月亮能量剩余 ≤ 星火读条+0.5）？">
+                <Arrow label="是" color={c.green} />
+                <Act icon="🌙" title="施放 愤怒" color={c.blue} bg={c.blueL} />
+              </Cond>
+            </Grid>
+            <Cond text="炮 CD ≤ 3s 且 非 持续伤害 停刷期？">
+              <Branch
+                yes={
+                  <Stack gap={3}>
+                    <Cond text="虫群 < 炮读条+炮CD？">
+                      <Arrow label="是" color={c.green} />
+                      <Act icon="🐛" title="施放 虫群 — 续 持续伤害" color={c.orange} bg={c.orangeL} />
+                    </Cond>
+                    <Arrow />
+                    <Cond text="月火 < 炮读条+炮CD？">
+                      <Arrow label="是" color={c.green} />
+                      <Act icon="🌙" title="施放 月火 — 续 持续伤害" color={c.orange} bg={c.orangeL} />
+                    </Cond>
+                  </Stack>
+                }
+                no={<Note text="持续伤害 够用，跳过" />}
+              />
+            </Cond>
+            <Cond text="月亮能量 < 3？">
+              <Branch yes={<Act icon="😡" title="施放 愤怒 — 叠月亮" color={c.blue} bg={c.blueL} />} no={<Note text="月亮满" />} />
+            </Cond>
+            <Arrow />
+            <Cond text="太阳能量 < 3？">
+              <Branch yes={<Act icon="✨" title="施放 星火术 — 补太阳" color={c.blue} bg={c.blueL} />} no={<Note text="太阳满" />} />
+            </Cond>
+            <Arrow />
+            <Note text="双满兜底：" color={c.purple} bg={c.purpleL} />
+            <Cond text="愤怒读条 > 0.75s？">
+              <Branch
+                yes={<Act icon="😡" title="施放 愤怒" color={c.blue} bg={c.blueL} />}
+                no={
+                  <Cond text="自然之赐触发？">
+                    <Branch
+                      yes={<Act icon="✨" title="施放 星火术" color={c.green} bg={c.greenL} />}
+                      no={<Act icon="😡" title="施放 愤怒" color={c.blue} bg={c.blueL} />}
+                    />
+                  </Cond>
+                }
+              />
+            </Cond>
+          </Stack>
+        </FCard>
+
+        <Arrow label="月蚀 / 选民均结束" color={c.green} />
+
+        {/* ═══════ P1 冲月蚀 ═══════ */}
+        <FCard p="16px">
+          <PhaseHead p="P1" title="冲月蚀阶段（无月蚀、无选民）" color={c.purple} />
+          <Note text="触发条件：月蚀剩余 == 0 且 选民剩余 == 0" color={c.purple} bg={c.purpleL} />
+          <Arrow />
+          <Stack gap={3}>
+            <Grid columns={2} gap={6}>
+              <Cond text="太阳即将过期（太阳能量剩余 ≤ 星火读条+0.5）？">
+                <Arrow label="是" color={c.green} />
+                <Act icon="☀️" title="施放 星火术" color={c.purple} bg={c.purpleL} />
+              </Cond>
+              <Cond text="月亮即将过期（月亮能量剩余 ≤ 星火读条+0.5）？">
+                <Arrow label="是" color={c.green} />
+                <Act icon="🌙" title="施放 愤怒" color={c.purple} bg={c.purpleL} />
+              </Cond>
+            </Grid>
+            <Cond text="炮 CD ≤ 3s 且 非 持续伤害 停刷期？">
+              <Branch
+                yes={
+                  <Stack gap={3}>
+                    <Cond text="虫群 / 月火 < 炮读条+炮CD？">
+                      <Arrow label="是" color={c.green} />
+                      <Act icon="🔄" title="补 持续伤害（虫群→月火）" color={c.orange} bg={c.orangeL} />
+                    </Cond>
+                  </Stack>
+                }
+                no={<Note text="跳过" />}
+              />
+            </Cond>
+            <Cond text="自然之赐触发 且 太阳 < 3？">
+              <Branch
+                yes={<Act icon="✨" title="施放 星火术 — 利用暴击加速" color={c.green} bg={c.greenL} />}
+                no={<Note text="跳过自然之赐" />}
+              />
+            </Cond>
+            <Arrow />
+            <Cond text="月亮能量 < 3？">
+              <Branch
+                yes={<Act icon="😡" title="施放 愤怒 — 叠月亮" desc="优先叠满月亮到 3/3" color={c.blue} bg={c.blueL} />}
+                no={
+                  <Stack gap={3}>
+                    <Cond text="太阳能量 < 3？">
+                      <Branch
+                        yes={<Act icon="✨" title="施放 星火术 — 冲太阳" desc="月亮已满，星火冲太阳" color={c.green} bg={c.greenL} />}
+                        no={<Act icon="⏳" title="停止施法 — 双满等月蚀" desc="等待 P3 接手" color={c.gray} bg={c.grayL} />}
+                      />
+                    </Cond>
+                  </Stack>
+                }
+              />
+            </Cond>
+          </Stack>
+        </FCard>
+
+        <Arrow color={c.gray} />
+        <Note text="兜底：停止施法（兜底）" color={c.gray} bg={c.grayL} />
+
+        <Divider />
+
+        {/* ─── 关键参数 ─── */}
+        <div style={{ marginTop: '6px' }}>
+          <H2 style={{ fontSize: '16px', margin: '0 0 10px 0', color: c.text }}>关键参数速查</H2>
+          <FCard p="12px">
+            <Grid columns={3} gap={6}>
+              {[
+                { v: '0.75s', l: '愤怒读条阈值', d: '切星火临界值' },
+                { v: '≤ 7s', l: '选民切换点', d: '有嗜血时切愤怒' },
+                { v: '2s', l: '轨道炮缓冲', d: '延迟安全余量' },
+                { v: '< 10s', l: '斩杀期', d: '不开炮' },
+                { v: '< 5s', l: '持续伤害 停刷', d: '目标即将死亡' },
+                { v: '> 120s', l: '多次释放', d: '立即开炮' },
+              ].map((p, i) => (
+                <div key={i} style={{ textAlign: 'center' as const, padding: '6px', background: c.grayL, borderRadius: '6px' }}>
+                  <div style={{ fontSize: '16px', fontWeight: 800, color: c.purple }}>{p.v}</div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, color: c.text }}>{p.l}</div>
+                  <div style={{ fontSize: '9px', color: c.gray }}>{p.d}</div>
+                </div>
+              ))}
+            </Grid>
+          </FCard>
+        </div>
+
+        <Text size="small" style={{ textAlign: 'center' as const, marginTop: '12px', color: c.gray }}>
+          V2.0 | 泰坦时光服 WLK 80 | 预期 DPS 提升 8-15%
+        </Text>
+      </div>
+    </div>
+  );
+}
