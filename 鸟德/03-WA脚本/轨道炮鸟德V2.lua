@@ -30,6 +30,8 @@ local S = {
     Innervate = 29166,       -- 激活
 }
 
+local superStarfall = S.Starfall + 1  -- 超级星落（开饰品）
+
 -- Buff ID 表
 local B = {
     SolarEnergy  = 1309555,  -- 太阳能量
@@ -48,6 +50,9 @@ local MAX_ENERGY = 3
 -- Focus 偏移量
 local FOCUS_OFFSET = 100000
 
+-- 超级星落追踪（嗜血期间首次爆发用）
+local superStarfallUsed = false
+
 -- ==========================================
 -- ActionList
 -- ==========================================
@@ -57,6 +62,7 @@ local ActionList = {
     {S.Starfire,    "spell", "星火术"},
     {S.FaerieFire,  "spell", "精灵之火"},
     {S.Starfall,    "spell", "星辰坠落"},
+    {superStarfall, "macro", "/cqs\\n\\n/use 13\\n/use 14\\n/cast 星辰坠落\\n/cqs", GetSpellTexture("星辰坠落")},  -- 超级星落（开饰品）
     {S.Wrath,       "spell", "愤怒"},
     {S.Hurricane,   "spell", "飓风"},
     {S.MoonkinForm, "spell", "枭兽形态"},
@@ -94,6 +100,7 @@ local function APLCallback()
     local function cd(id) return math.max(0, VF_getSpellCD(id) - GCD) end
     
     local railgunCD = cd(S.Railgun)
+    local sfCD = cd(S.Starfall)
     -- 每帧取含急速的读条时间（GetSpellInfo 已含急速，不额外除）
     local wrathCT = (select(4, GetSpellInfo("愤怒"))) / 1000
     local starfireCT = (select(4, GetSpellInfo("星火术"))) / 1000
@@ -112,6 +119,11 @@ local function APLCallback()
     
     -- 检测嗜血/英勇 (ID: 2825 嗜血, 32182 英勇/英雄主义)
     local hasBloodlust = VF_getBuff("player", B.Bloodlust, "HELPFUL") > 0 or VF_getBuff("player", B.Heroism, "HELPFUL") > 0
+    
+    -- 嗜血结束时重置超级星落标记
+    if not hasBloodlust then
+        superStarfallUsed = false
+    end
     
     -- 目标 debuff
     local isRem = math.max(0, VF_getDebuff("target", S.InsectSwarm, "HARMFUL|PLAYER") - math.max(0,GCD-0.1))
@@ -266,6 +278,15 @@ local function APLCallback()
         end
     end
     
+    -- 超级星落（嗜血首次爆发：开饰品+星落，快速进入爆发期）
+    if eclipseDur > railgunCT and railgunCD > CastWindow
+        and (WAParam.config and WAParam.config.Starfall) and sfCD <= CastWindow
+        and hasBloodlust and not superStarfallUsed
+        and lunarStacks >= MAX_ENERGY and solarStacks == MAX_ENERGY - 1 then
+        superStarfallUsed = true
+        return superStarfall
+    end
+    
     -- P3: 月蚀 + 炮就绪 → 根据节奏开炮
     if eclipseDur > railgunCT + railgunCD and railgunCD <= CastWindow 
     and ((targetDeadTime <= 20 or targetDeadTime > 20 + eclipseDur - railgunCT)
@@ -319,6 +340,11 @@ local function APLCallback()
             if mfRem < threshold then return S.Moonfire end
         end
         
+        -- 星落叠层（仅在轨道炮不会在星落CD内就绪时使用，保留给爆发连招）
+        if (WAParam.config and WAParam.config.Starfall) and sfCD <= CastWindow and railgunCD > sfCD then
+            return S.Starfall
+        end
+        
         -- 万一月亮未满 → 愤怒叠月亮
         if lunarStacks < MAX_ENERGY then
             return S.Wrath
@@ -348,6 +374,11 @@ local function APLCallback()
             local threshold = railgunCT + railgunCD
             if isRem < threshold then return S.InsectSwarm end
             if mfRem < threshold then return S.Moonfire end
+        end
+        
+        -- 星落叠层（仅在轨道炮不会在星落CD内就绪时使用，保留给爆发连招）
+        if (WAParam.config and WAParam.config.Starfall) and sfCD <= CastWindow and railgunCD > sfCD then
+            return S.Starfall
         end
         
         -- 自然之赐 
